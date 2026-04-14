@@ -1,63 +1,44 @@
 import React from 'react';
+
+// Mengimpor komponen UI bawaan React Native yang dibutuhkan
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  Button,
+  View,             // Komponen container/pembungkus layout
+  Text,             // Komponen untuk menampilkan teks
+  Image,            // Komponen untuk menampilkan gambar/foto
+  StyleSheet,       // Digunakan untuk membuat styling
+  TouchableOpacity, // Komponen tombol yang bisa ditekan dengan efek opacity
+  Button,           // Komponen tombol bawaan React Native
 } from 'react-native';
+
+// Mengimpor konfigurasi warna dan font dari folder theme
 import { colors, fonts } from '../theme';
 
-// ==============================
-// PENERAPAN PROPS
-// ==============================
-// Komponen ListBlog menerima props dari App.js:
-// - title, category, image → data artikel
-// - isSelected → apakah artikel ini sedang dipilih (dari state App.js)
-// - isLiked → apakah artikel ini di-like (dari state App.js)
-// - onPress, onReadMore, onLike → fungsi dari App.js
-const ListBlog = ({
-  title,
-  category,
-  image,
-  isSelected,  // Props state — artikel dipilih atau tidak
-  isLiked,     // Props state — artikel di-like atau tidak
-  onPress,
-  onReadMore,
-  onLike,      // Props fungsi like
-}) => {
+// Komponen ListBlog — menampilkan satu kartu artikel wisata
+// Menerima props: title, category, image, onPress, onReadMore
+const ListBlog = ({ title, category, image, onPress, onReadMore }) => {
   return (
-    // Jika artikel dipilih (isSelected true), border kartu berubah jadi hijau
-    <TouchableOpacity
-      style={[styles.card, isSelected && styles.cardSelected]}
-      onPress={onPress}
-      activeOpacity={0.9}
-    >
-      {/* Foto artikel */}
+    // TouchableOpacity membuat seluruh kartu bisa ditekan
+    // activeOpacity mengatur tingkat transparansi saat ditekan
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
+
+      {/* Menampilkan foto wisata dari link URL */}
       <Image source={{ uri: image }} style={styles.image} />
 
+      {/* Bagian informasi teks di bawah foto */}
       <View style={styles.info}>
 
-        {/* Baris kategori dan tombol like */}
-        <View style={styles.topRow}>
-          {/* Menampilkan props category */}
-          <Text style={styles.category}>{category}</Text>
+        {/* Menampilkan kategori artikel (Alam / Budaya / Kuliner) */}
+        <Text style={styles.category}>{category}</Text>
 
-          {/* Tombol like — menampilkan ❤️ atau 🤍 berdasarkan props isLiked */}
-          <TouchableOpacity onPress={onLike}>
-            <Text style={styles.likeIcon}>{isLiked ? '❤️' : '🤍'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Menampilkan props title */}
+        {/* Menampilkan judul artikel */}
         <Text style={styles.title}>{title}</Text>
 
-        {/* Tombol Baca Selengkapnya */}
+        {/* Pembungkus tombol agar borderRadius bisa diterapkan */}
         <View style={styles.buttonWrapper}>
+          {/* Tombol "Baca Selengkapnya" — memanggil fungsi onReadMore saat ditekan */}
           <Button
             title="Baca Selengkapnya"
-            color={colors.primary}
+            color={colors.primary} // Warna tombol menggunakan warna primary dari theme
             onPress={onReadMore}
           />
         </View>
@@ -66,60 +47,51 @@ const ListBlog = ({
   );
 };
 
+// StyleSheet untuk mengatur tampilan komponen kartu blog
 const styles = StyleSheet.create({
-  // Style kartu normal
+  // Style untuk kartu/card keseluruhan
   card: {
     backgroundColor: colors.white,
-    borderRadius: 16,
-    marginBottom: 20,
-    overflow: 'hidden',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    borderWidth: 2,
-    borderColor: 'transparent', // Border transparan saat tidak dipilih
+    borderRadius: 16,      // Sudut kartu melengkung
+    marginBottom: 20,      // Jarak antar kartu
+    overflow: 'hidden',    // Memastikan konten tidak keluar dari batas kartu
+    elevation: 4,          // Bayangan kartu (Android)
+    shadowColor: '#000',   // Warna bayangan (iOS)
+    shadowOpacity: 0.08,   // Transparansi bayangan (iOS)
+    shadowRadius: 8,       // Ukuran bayangan (iOS)
   },
-  // Style kartu saat dipilih — border berubah hijau
-  cardSelected: {
-    borderColor: colors.primary,  // Border hijau saat artikel dipilih
-  },
+  // Style untuk foto wisata
   image: {
-    width: '100%',
-    height: 180,
+    width: '100%',   // Lebar penuh mengikuti kartu
+    height: 180,     // Tinggi foto tetap 180px
   },
+  // Style untuk area informasi teks di bawah foto
   info: {
     padding: 14,
   },
-  // Baris atas berisi kategori dan ikon like
-  topRow: {
-    flexDirection: 'row',         // Susun horizontal
-    justifyContent: 'space-between', // Kategori kiri, like kanan
-    alignItems: 'center',
-    marginBottom: 4,
-  },
+  // Style untuk teks kategori (ALAM / BUDAYA / KULINER)
   category: {
     fontSize: 11,
     color: colors.secondary,
     fontFamily: fonts.semiBold,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    marginBottom: 4,
+    textTransform: 'uppercase', // Huruf kapital semua
+    letterSpacing: 1,           // Jarak antar huruf
   },
-  // Ikon like (❤️ atau 🤍)
-  likeIcon: {
-    fontSize: 18,
-  },
+  // Style untuk teks judul artikel
   title: {
     fontSize: 16,
     color: colors.text,
     fontFamily: fonts.bold,
     marginBottom: 12,
-    lineHeight: 22,
+    lineHeight: 22, // Jarak antar baris teks
   },
+  // Style untuk pembungkus tombol
   buttonWrapper: {
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: 'hidden', // Agar borderRadius tombol terlihat
   },
 });
 
+// Mengekspor komponen agar bisa digunakan di file lain
 export default ListBlog;
