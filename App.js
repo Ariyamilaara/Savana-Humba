@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react'; // useState untuk membuat state
+
 import {
   View,
   Text,
@@ -7,7 +8,6 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-
 import {
   useFonts,
   Nunito_400Regular,
@@ -15,14 +15,14 @@ import {
   Nunito_700Bold,
   Nunito_800ExtraBold,
 } from '@expo-google-fonts/nunito';
-
 import ListBlog from './src/components/ListBlog';
 import { colors, fonts } from './src/theme';
 
+// Data dummy artikel wisata Sumba
 const dummyData = [
   {
     id: '1',
-    title: 'Mengenal Keindahan Alam Sumba yang Eksotis',
+    title: 'Mengenal Savana Sumba yang Eksotis',
     category: 'Alam',
     image: 'https://i.pinimg.com/736x/10/e8/5e/10e85ec271bbc9abba77b615ec771a27.jpg',
   },
@@ -41,6 +41,44 @@ const dummyData = [
 ];
 
 export default function App() {
+
+  // ==============================
+  // PENERAPAN STATE
+  // ==============================
+
+  // State 1 — menyimpan artikel yang sedang dipilih/aktif
+  // Nilai awal null artinya belum ada artikel yang dipilih
+  const [selectedId, setSelectedId] = useState(null);
+
+  // State 2 — menyimpan daftar id artikel yang di-like
+  // Nilai awal array kosong artinya belum ada yang di-like
+  const [likedIds, setLikedIds] = useState([]);
+
+  // State 3 — menyimpan jumlah total artikel yang sudah dibaca
+  // Nilai awal 0
+  const [readCount, setReadCount] = useState(0);
+
+  // Fungsi untuk menangani tombol "Baca Selengkapnya" ditekan
+  // Mengubah state selectedId dan menambah readCount
+  const handleReadMore = (id, title) => {
+    setSelectedId(id);             // Mengubah state artikel yang dipilih
+    setReadCount(readCount + 1);   // Menambah jumlah artikel yang dibaca
+    Alert.alert('SavanaHumba', `Membuka artikel: ${title}\nTotal dibaca: ${readCount + 1}`);
+  };
+
+  // Fungsi untuk menangani tombol like ditekan
+  // Jika sudah di-like maka unlike, jika belum maka like
+  const handleLike = (id) => {
+    if (likedIds.includes(id)) {
+      // Jika sudah di-like, hapus dari daftar likedIds
+      setLikedIds(likedIds.filter((likedId) => likedId !== id));
+    } else {
+      // Jika belum di-like, tambahkan ke daftar likedIds
+      setLikedIds([...likedIds, id]);
+    }
+  };
+
+  // Hook untuk memuat font kustom Nunito
   const [fontsLoaded] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,
@@ -48,11 +86,8 @@ export default function App() {
     Nunito_800ExtraBold,
   });
 
+  // Jika font belum dimuat, tampilkan layar kosong
   if (!fontsLoaded) return null;
-
-  const handleReadMore = (title) => {
-    Alert.alert('SavanaHumba', `Membuka artikel: ${title}`);
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -64,18 +99,35 @@ export default function App() {
         <View style={styles.header}>
           <Text style={styles.greeting}>Selamat Datang 👋</Text>
           <Text style={styles.appName}>SavanaHumba</Text>
-          <Text style={styles.subtitle}>Jelajahi keindahan alam & budaya Sumba</Text>
+          <Text style={styles.subtitle}>
+            Jelajahi keindahan alam & budaya Sumba
+          </Text>
+
+          {/* Menampilkan state readCount — jumlah artikel yang sudah dibaca */}
+          <Text style={styles.readInfo}>
+            📖 Artikel dibaca: {readCount}
+          </Text>
         </View>
 
         {/* List Blog */}
         {dummyData.map((item) => (
+          // ==============================
+          // PENERAPAN PROPS
+          // ==============================
+          // Setiap data dari dummyData dikirim sebagai PROPS ke komponen ListBlog
           <ListBlog
             key={item.id}
-            title={item.title}
-            category={item.category}
-            image={item.image}
-            onPress={() => handleReadMore(item.title)}
-            onReadMore={() => handleReadMore(item.title)}
+            // Props data artikel
+            title={item.title}        // Props judul → diterima ListBlog
+            category={item.category}  // Props kategori → diterima ListBlog
+            image={item.image}        // Props foto → diterima ListBlog
+            // Props state — mengirim nilai state ke ListBlog
+            isSelected={selectedId === item.id}       // Props apakah artikel ini dipilih
+            isLiked={likedIds.includes(item.id)}      // Props apakah artikel ini di-like
+            // Props fungsi — mengirim fungsi ke ListBlog
+            onPress={() => handleReadMore(item.id, item.title)}
+            onReadMore={() => handleReadMore(item.id, item.title)}
+            onLike={() => handleLike(item.id)}        // Props fungsi like
           />
         ))}
       </ScrollView>
@@ -112,5 +164,17 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     fontFamily: fonts.regular,
     marginTop: 4,
+  },
+  // Style untuk info jumlah artikel dibaca
+  readInfo: {
+    fontSize: 13,
+    color: colors.primary,
+    fontFamily: fonts.semiBold,
+    marginTop: 8,
+    backgroundColor: colors.accent,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
   },
 });
