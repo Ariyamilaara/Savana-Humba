@@ -9,51 +9,20 @@ import {
 } from 'react-native';
 import { colors, fonts } from '../theme';
 
-// ==============================
-// PENERAPAN PROPS
-// ==============================
-// Komponen ListBlog menerima props dari App.js:
-// - title, category, image → data artikel
-// - isSelected → apakah artikel ini sedang dipilih (dari state App.js)
-// - isLiked → apakah artikel ini di-like (dari state App.js)
-// - onPress, onReadMore, onLike → fungsi dari App.js
-const ListBlog = ({
-  title,
-  category,
-  image,
-  isSelected,  // Props state — artikel dipilih atau tidak
-  isLiked,     // Props state — artikel di-like atau tidak
-  onPress,
-  onReadMore,
-  onLike,      // Props fungsi like
-}) => {
+// Hapus useNavigation dari sini — navigasi dikirim lewat props onReadMore
+const ListBlog = ({ title, category, image, isLiked, onPress, onReadMore, onLike }) => {
+
   return (
-    // Jika artikel dipilih (isSelected true), border kartu berubah jadi hijau
-    <TouchableOpacity
-      style={[styles.card, isSelected && styles.cardSelected]}
-      onPress={onPress}
-      activeOpacity={0.9}
-    >
-      {/* Foto artikel */}
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
       <Image source={{ uri: image }} style={styles.image} />
-
       <View style={styles.info}>
-
-        {/* Baris kategori dan tombol like */}
         <View style={styles.topRow}>
-          {/* Menampilkan props category */}
           <Text style={styles.category}>{category}</Text>
-
-          {/* Tombol like — menampilkan ❤️ atau 🤍 berdasarkan props isLiked */}
           <TouchableOpacity onPress={onLike}>
             <Text style={styles.likeIcon}>{isLiked ? '❤️' : '🤍'}</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Menampilkan props title */}
         <Text style={styles.title}>{title}</Text>
-
-        {/* Tombol Baca Selengkapnya */}
         <View style={styles.buttonWrapper}>
           <Button
             title="Baca Selengkapnya"
@@ -67,7 +36,6 @@ const ListBlog = ({
 };
 
 const styles = StyleSheet.create({
-  // Style kartu normal
   card: {
     backgroundColor: colors.white,
     borderRadius: 16,
@@ -78,11 +46,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     borderWidth: 2,
-    borderColor: 'transparent', // Border transparan saat tidak dipilih
-  },
-  // Style kartu saat dipilih — border berubah hijau
-  cardSelected: {
-    borderColor: colors.primary,  // Border hijau saat artikel dipilih
+    borderColor: 'transparent',
   },
   image: {
     width: '100%',
@@ -91,10 +55,9 @@ const styles = StyleSheet.create({
   info: {
     padding: 14,
   },
-  // Baris atas berisi kategori dan ikon like
   topRow: {
-    flexDirection: 'row',         // Susun horizontal
-    justifyContent: 'space-between', // Kategori kiri, like kanan
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
   },
@@ -105,7 +68,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  // Ikon like (❤️ atau 🤍)
   likeIcon: {
     fontSize: 18,
   },

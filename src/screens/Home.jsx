@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Alert,
 } from 'react-native';
 import {
   useFonts,
@@ -14,6 +13,7 @@ import {
   Nunito_700Bold,
   Nunito_800ExtraBold,
 } from '@expo-google-fonts/nunito';
+import { useNavigation } from '@react-navigation/native';
 import ListBlog from '../components/ListBlog';
 import { colors, fonts } from '../theme';
 
@@ -38,11 +38,9 @@ const dummyData = [
   },
 ];
 
-// Komponen Home — halaman utama SavanaHumba
 const Home = () => {
-  // State untuk menyimpan artikel yang di-like
+  const navigation = useNavigation(); // aman di sini karena Home sudah di dalam NavigationContainer
   const [likedIds, setLikedIds] = useState([]);
-  // State untuk menghitung artikel yang dibaca
   const [readCount, setReadCount] = useState(0);
 
   const [fontsLoaded] = useFonts({
@@ -53,11 +51,6 @@ const Home = () => {
   });
 
   if (!fontsLoaded) return null;
-
-  const handleReadMore = (id, title) => {
-    setReadCount(readCount + 1);
-    Alert.alert('SavanaHumba', `Membuka artikel: ${title}`);
-  };
 
   const handleLike = (id) => {
     if (likedIds.includes(id)) {
@@ -81,7 +74,7 @@ const Home = () => {
           <Text style={styles.readInfo}>📖 Artikel dibaca: {readCount}</Text>
         </View>
 
-        {/* List Blog — menggunakan flexbox column (default) */}
+        {/* List Blog */}
         {dummyData.map((item) => (
           <ListBlog
             key={item.id}
@@ -89,8 +82,12 @@ const Home = () => {
             category={item.category}
             image={item.image}
             isLiked={likedIds.includes(item.id)}
-            onPress={() => handleReadMore(item.id, item.title)}
-            onReadMore={() => handleReadMore(item.id, item.title)}
+            // onPress dan onReadMore keduanya navigasi ke BlogDetail
+            onPress={() => navigation.navigate('BlogDetail', { blogId: item.id })}
+            onReadMore={() => {
+              setReadCount(readCount + 1);
+              navigation.navigate('BlogDetail', { blogId: item.id });
+            }}
             onLike={() => handleLike(item.id)}
           />
         ))}
