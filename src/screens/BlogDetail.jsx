@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
   TouchableOpacity,
   Image,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts } from '../theme';
 
+// Data artikel wisata Sumba
 const dummyData = [
   {
     id: '1',
@@ -58,34 +59,69 @@ Selain Se'i, ada juga Jawada yaitu kue tradisional yang terbuat dari tepung bera
   },
 ];
 
+// Fungsi format angka (1200 → 1.2K)
 const formatNumber = (number) => {
   if (number >= 1000) return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   return number.toString();
 };
 
+// Komponen BlogDetail — halaman detail artikel wisata
+// Menerima route.params berisi blogId dari Stack Navigator
 const BlogDetail = ({ route }) => {
   const { blogId } = route.params;
   const navigation = useNavigation();
 
+  // State untuk like, bookmark, dan share
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isShared, setIsShared] = useState(false);
 
-  const selectedBlog = dummyData.find((blog) => blog.id === blogId);
+  // PENERAPAN ANIMASI
+  
+  // Membuat nilai awal scrollY = 0 menggunakan useRef
+  // agar tidak terbuat ulang saat komponen re-render
+  const scrollY = useRef(new Animated.Value(0)).current;
 
+  // diffClamp membatasi nilai scrollY antara 0 dan 52
+  // agar animasi tidak bergerak melebihi batas header
+  const diffClampY = Animated.diffClamp(scrollY, 0, 52);
+
+  // Interpolasi untuk header — bergerak ke atas saat scroll turun
+  // inputRange [0, 52] dipetakan ke outputRange [0, -52]
+  const headerY = diffClampY.interpolate({
+    inputRange: [0, 52],
+    outputRange: [0, -52],
+    extrapolate: 'clamp',
+  });
+
+  // Interpolasi untuk bottomBar — bergerak ke bawah saat scroll turun
+  // inputRange [0, 52] dipetakan ke outputRange [0, 52]
+  const bottomBarY = diffClampY.interpolate({
+    inputRange: [0, 52],
+    outputRange: [0, 52],
+    extrapolate: 'clamp',
+  });
+
+  // Cari artikel berdasarkan blogId
+  const selectedBlog = dummyData.find((blog) => blog.id === blogId);
   if (!selectedBlog) return null;
 
   return (
     <SafeAreaView style={styles.container}>
 
-      {/* Header */}
-      <View style={styles.header}>
+      {/* Header — menggunakan Animated.View agar bisa bergerak saat scroll */}
+      <Animated.View
+        style={[styles.header, { transform: [{ translateY: headerY }] }]}
+      >
+        {/* Tombol kembali ke halaman sebelumnya */}
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color={colors.text} />
         </TouchableOpacity>
 
+        {/* Judul halaman */}
         <Text style={styles.headerTitle}>Detail Artikel</Text>
 
+        {/* Tombol bookmark — toggle simpan/hapus */}
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => {
@@ -102,15 +138,22 @@ const BlogDetail = ({ route }) => {
             color={isBookmarked ? colors.primary : colors.text}
           />
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
-      {/* Konten artikel */}
-      <ScrollView
+      {/* Animated.ScrollView — menangkap event scroll untuk menggerakkan animasi */}
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Foto artikel */}
         <Image source={{ uri: selectedBlog.image }} style={styles.image} />
 
+        {/* Meta info — kategori dan tanggal */}
         <View style={styles.metaRow}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{selectedBlog.category}</Text>
@@ -118,15 +161,21 @@ const BlogDetail = ({ route }) => {
           <Text style={styles.date}>📅 {selectedBlog.createdAt}</Text>
         </View>
 
+        {/* Judul artikel */}
         <Text style={styles.title}>{selectedBlog.title}</Text>
+
+        {/* Garis pemisah */}
         <View style={styles.divider} />
+
+        {/* Isi artikel */}
         <Text style={styles.content}>{selectedBlog.content}</Text>
-      </ScrollView>
+      </Animated.ScrollView>
 
-      {/* Bottom bar — like, komentar, share */}
-      <View style={styles.bottomBar}>
-
-        {/* Tombol Like */}
+      {/* Bottom bar — menggunakan Animated.View agar bisa bergerak saat scroll */}
+      <Animated.View
+        style={[styles.bottomBar, { transform: [{ translateY: bottomBarY }] }]}
+      >
+        {/* Tombol Like — toggle merah/abu */}
         <TouchableOpacity
           style={styles.interactionItem}
           onPress={() => setIsLiked(!isLiked)}
@@ -143,7 +192,7 @@ const BlogDetail = ({ route }) => {
           </Text>
         </TouchableOpacity>
 
-        {/* Tombol Komentar */}
+        {/* Tombol Komentar — menampilkan Alert fitur segera hadir */}
         <TouchableOpacity
           style={styles.interactionItem}
           onPress={() => Alert.alert('SavanaHumba', 'Fitur komentar segera hadir! 💬')}
@@ -154,7 +203,7 @@ const BlogDetail = ({ route }) => {
           </Text>
         </TouchableOpacity>
 
-        {/* Tombol Share */}
+        {/* Tombol Share — toggle ikon dan tampilkan Alert */}
         <TouchableOpacity
           style={styles.interactionItem}
           onPress={() => {
@@ -168,8 +217,8 @@ const BlogDetail = ({ route }) => {
             color={isShared ? colors.primary : colors.textLight}
           />
         </TouchableOpacity>
+      </Animated.View>
 
-      </View>
     </SafeAreaView>
   );
 };
@@ -177,10 +226,12 @@ const BlogDetail = ({ route }) => {
 export default BlogDetail;
 
 const styles = StyleSheet.create({
+  // Container utama halaman
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
+  // Header — position absolute agar bisa ditimpa konten scroll
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -190,22 +241,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    height: 52,
   },
+  // Tombol kembali dan bookmark
   backBtn: {
     padding: 4,
   },
+  // Judul header
   headerTitle: {
     fontSize: 16,
     color: colors.text,
     fontFamily: fonts.bold,
   },
+  // Padding konten scroll agar tidak tertutup header dan bottomBar
   scrollContent: {
+    paddingTop: 62,
     paddingBottom: 120,
   },
+  // Foto artikel full width
   image: {
     width: '100%',
     height: 240,
   },
+  // Baris meta — kategori dan tanggal
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -213,6 +276,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 16,
   },
+  // Badge kategori
   badge: {
     backgroundColor: colors.accent,
     paddingHorizontal: 12,
@@ -225,11 +289,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semiBold,
     textTransform: 'uppercase',
   },
+  // Teks tanggal
   date: {
     fontSize: 12,
     color: colors.textLight,
     fontFamily: fonts.regular,
   },
+  // Judul artikel
   title: {
     fontSize: 20,
     color: colors.text,
@@ -238,12 +304,14 @@ const styles = StyleSheet.create({
     marginTop: 12,
     lineHeight: 28,
   },
+  // Garis pemisah
   divider: {
     height: 1,
     backgroundColor: '#eee',
     marginHorizontal: 20,
     marginVertical: 16,
   },
+  // Isi artikel
   content: {
     fontSize: 14,
     color: colors.textLight,
@@ -251,6 +319,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     lineHeight: 24,
   },
+  // Bottom bar — position absolute agar bisa bergerak dengan animasi
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -263,12 +332,15 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     borderTopWidth: 1,
     borderTopColor: '#eee',
+    zIndex: 1000,
   },
+  // Item interaksi — like, komentar, share
   interactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
+  // Teks jumlah like/komentar
   interactionText: {
     fontSize: 13,
     color: colors.textLight,
