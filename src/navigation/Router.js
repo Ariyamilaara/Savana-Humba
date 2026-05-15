@@ -9,6 +9,7 @@ import Bookmark from '../screens/Bookmark';
 import Profile from '../screens/Profile';
 import BlogDetail from '../screens/BlogDetail'; // ← pastikan baris ini ada
 import { colors, fonts } from '../theme';
+import TambahArtikel from '../screens/TambahArtikel';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -99,6 +100,14 @@ const Router = () => {
           ...TransitionPresets.SlideFromRightIOS,
         }}
       />
+      <Stack.Screen
+       name="TambahArtikel"
+       component={TambahArtikel}
+       options={{
+       headerShown: false,
+    ...TransitionPresets.SlideFromRightIOS,
+  }}
+/>
     </Stack.Navigator>
   );
 };

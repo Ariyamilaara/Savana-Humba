@@ -22,9 +22,9 @@ const kategoriData = [
 
 // Data wisata Sumba
 const wisataData = [
-  { id: '1', title: 'Pantai Nihiwatu', kategori: 'Pantai', lokasi: 'Sumba Barat', image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400' },
+  { id: '1', title: 'Pantai Nihiwatu', kategori: 'Pantai', lokasi: 'Sumba Barat Daya', image: 'https://images.unsplash.com/photo-1533050487297-09b450131914?w=400' },
   { id: '2', title: 'Savana Puru Kambera', kategori: 'Savana', lokasi: 'Sumba Timur', image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400' },
-  { id: '3', title: 'Air Terjun Lapopu', kategori: 'Air Terjun', lokasi: 'Sumba Barat', image: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=400' },
+  { id: '3', title: 'Air Terjun Lapopu', kategori: 'Air Terjun', lokasi: 'Sumba Tengah', image: 'https://images.unsplash.com/photo-1533050487297-09b450131914?w=400' },
   { id: '4', title: 'Kampung Adat Ratenggaro', kategori: 'Budaya', lokasi: 'Sumba Barat', image: 'https://images.unsplash.com/photo-1533050487297-09b450131914?w=400' },
   { id: '5', title: 'Pantai Walakiri', kategori: 'Pantai', lokasi: 'Sumba Timur', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400' },
   { id: '6', title: "Kuliner Se'i Babi Sumba", kategori: 'Kuliner', lokasi: 'Waingapu', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400' },
