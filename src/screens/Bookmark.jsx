@@ -13,8 +13,8 @@ import { colors, fonts } from '../theme';
 
 // Data bookmark wisata Sumba
 const bookmarkData = [
-  { id: '1', title: 'Pantai Nihiwatu', kategori: 'Pantai', tanggal: '01 Apr, 2026', image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400' },
-  { id: '2', title: 'Savana Puru Kambera', kategori: 'Savana', tanggal: '28 Mar, 2026', image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400' },
+  { id: '1', title: 'Pantai Nihiwatu', kategori: 'Pantai', tanggal: '01 Apr, 2026', image: 'https://i.pinimg.com/1200x/b2/27/cc/b227cce7968280608cedef8afec1f901.jpg' },
+  { id: '2', title: 'Savana Puru Kambera', kategori: 'Savana', tanggal: '28 Mar, 2026', image: 'https://i.pinimg.com/1200x/2b/84/06/2b8406cd3940593bbbd01305b8f888d8.jpg' },
   { id: '3', title: 'Air Terjun Lapopu', kategori: 'Air Terjun', tanggal: '20 Mar, 2026', image: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=400' },
   { id: '4', title: 'Kampung Adat Ratenggaro', kategori: 'Budaya', tanggal: '15 Mar, 2026', image: 'https://images.unsplash.com/photo-1533050487297-09b450131914?w=400' },
 ];

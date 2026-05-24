@@ -7,13 +7,15 @@ import Home from '../screens/Home';
 import Discover from '../screens/Discover';
 import Bookmark from '../screens/Bookmark';
 import Profile from '../screens/Profile';
-import BlogDetail from '../screens/BlogDetail'; // ← pastikan baris ini ada
-import { colors, fonts } from '../theme';
+import BlogDetail from '../screens/BlogDetail';
 import TambahArtikel from '../screens/TambahArtikel';
+import EditArtikel from '../screens/EditArtikel'; // ← tambahkan
+import { colors, fonts } from '../theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+// Bottom Tab Navigator — navigasi utama
 function MainApp() {
   return (
     <Tab.Navigator
@@ -79,6 +81,7 @@ function MainApp() {
   );
 }
 
+// Stack Navigator — membungkus MainApp + semua screen detail
 const Router = () => {
   return (
     <Stack.Navigator>
@@ -88,7 +91,8 @@ const Router = () => {
         component={MainApp}
         options={{ headerShown: false }}
       />
-      {/* BlogDetail HARUS ada di sini — di level Stack bukan di dalam Tab */}
+
+      {/* Screen detail artikel — slide dari kanan */}
       <Stack.Screen
         name="BlogDetail"
         component={BlogDetail}
@@ -100,14 +104,26 @@ const Router = () => {
           ...TransitionPresets.SlideFromRightIOS,
         }}
       />
+
+      {/* Screen tambah artikel baru */}
       <Stack.Screen
-       name="TambahArtikel"
-       component={TambahArtikel}
-       options={{
-       headerShown: false,
-    ...TransitionPresets.SlideFromRightIOS,
-  }}
-/>
+        name="TambahArtikel"
+        component={TambahArtikel}
+        options={{
+          headerShown: false,
+          ...TransitionPresets.SlideFromRightIOS,
+        }}
+      />
+
+      {/* Screen edit artikel — slide dari kanan */}
+      <Stack.Screen
+        name="EditArtikel"
+        component={EditArtikel}
+        options={{
+          headerShown: false,
+          ...TransitionPresets.SlideFromRightIOS,
+        }}
+      />
     </Stack.Navigator>
   );
 };

@@ -1,16 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Animated,
-  Alert,
-  ActivityIndicator,
+  View, Text, TextInput, TouchableOpacity,
+  StyleSheet, Animated, Alert, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { colors, fonts } from '../theme';
@@ -23,30 +17,45 @@ const dataKategori = [
   { id: 3, nama: 'Kuliner' },
 ];
 
-const TambahArtikel = () => {
+const EditArtikel = () => {
   const navigation = useNavigation();
-  const [loading, setLoading] = useState(false);
+  const route = useRoute();
+  const { blogId } = route.params; // id artikel yang akan diedit
 
-  // State semua field form
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+
+  // State data artikel yang akan diedit
   const [artikelData, setArtikelData] = useState({
-    title: '',
-    category: '',
-    description: '',
-    image: '',
-    createdAt: new Date().toLocaleDateString('id-ID', {
-      day: '2-digit', month: 'short', year: 'numeric'
-    }),
-    totalLikes: 0,
-    totalComments: 0,
+    title: '', category: '', description: '', image: '',
   });
 
-  // Update field tertentu di state
+  // Fungsi GET — ambil data artikel berdasarkan id untuk diisi ke form
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/${blogId}`);
+        setArtikelData({
+          title: res.data.title,
+          category: res.data.category,
+          description: res.data.description,
+          image: res.data.image,
+        });
+      } catch (error) {
+        Alert.alert('Error', 'Gagal memuat data artikel!');
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+    fetchData();
+  }, [blogId]);
+
   const handleChange = (key, value) => {
     setArtikelData({ ...artikelData, [key]: value });
   };
 
-  // Fungsi POST — kirim data artikel baru ke API
-  const handleSimpan = async () => {
+  // Fungsi PUT — update data artikel ke API
+  const handleUpdate = async () => {
     if (!artikelData.title || !artikelData.description ||
         !artikelData.image || !artikelData.category) {
       Alert.alert('Peringatan', 'Semua field wajib diisi!');
@@ -54,24 +63,20 @@ const TambahArtikel = () => {
     }
     setLoading(true);
     try {
-      await axios.post(API_URL, artikelData, {
+      await axios.put(`${API_URL}/${blogId}`, artikelData, {
         headers: { 'Content-Type': 'application/json' },
       });
-      Alert.alert('Berhasil! ✅', 'Artikel berhasil ditambahkan!', [
+      Alert.alert('Berhasil! ✅', 'Artikel berhasil diupdate!', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
-      setArtikelData({
-        title: '', category: '', description: '',
-        image: '', createdAt: '', totalLikes: 0, totalComments: 0,
-      });
     } catch (error) {
-      Alert.alert('Error', 'Gagal menambahkan artikel!');
+      Alert.alert('Error', 'Gagal mengupdate artikel!');
     } finally {
       setLoading(false);
     }
   };
 
-  // Animasi header & bottomBar
+  // Animasi
   const scrollY = useRef(new Animated.Value(0)).current;
   const diffClampY = Animated.diffClamp(scrollY, 0, 52);
   const headerY = diffClampY.interpolate({
@@ -81,6 +86,14 @@ const TambahArtikel = () => {
     inputRange: [0, 52], outputRange: [0, 52], extrapolate: 'clamp',
   });
 
+  if (fetchLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
 
@@ -89,11 +102,11 @@ const TambahArtikel = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Artikel</Text>
+        <Text style={styles.headerTitle}>Edit Artikel</Text>
         <View style={{ width: 24 }} />
       </Animated.View>
 
-      {/* Form input */}
+      {/* Form edit */}
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
@@ -165,31 +178,19 @@ const TambahArtikel = () => {
             autoCapitalize="none"
           />
         </View>
-
-        {/* Preview */}
-        {artikelData.title !== '' && (
-          <View style={styles.previewBox}>
-            <Text style={styles.previewTitle}>Preview Data 👀</Text>
-            <Text style={styles.previewText}>📌 Judul: {artikelData.title}</Text>
-            <Text style={styles.previewText}>🏷️ Kategori: {artikelData.category || '-'}</Text>
-            <Text style={styles.previewText} numberOfLines={2}>
-              📝 Deskripsi: {artikelData.description || '-'}
-            </Text>
-          </View>
-        )}
       </Animated.ScrollView>
 
-      {/* Bottom bar tombol simpan */}
+      {/* Bottom bar tombol update */}
       <Animated.View style={[styles.bottomBar, { transform: [{ translateY: bottomBarY }] }]}>
         <TouchableOpacity
-          style={[styles.btnSimpan, loading && { opacity: 0.6 }]}
-          onPress={handleSimpan}
+          style={[styles.btnUpdate, loading && { opacity: 0.6 }]}
+          onPress={handleUpdate}
           disabled={loading}
         >
           {loading ? (
             <ActivityIndicator color={colors.white} />
           ) : (
-            <Text style={styles.btnSimpanText}>Simpan Artikel</Text>
+            <Text style={styles.btnUpdateText}>Update Artikel</Text>
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -198,7 +199,7 @@ const TambahArtikel = () => {
   );
 };
 
-export default TambahArtikel;
+export default EditArtikel;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
@@ -224,14 +225,11 @@ const styles = StyleSheet.create({
   kategoriBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   kategoriText: { fontSize: 13, color: colors.primary, fontFamily: fonts.semiBold },
   kategoriTextActive: { color: colors.white },
-  previewBox: { backgroundColor: colors.accent, borderRadius: 12, padding: 14, marginTop: 16, gap: 4 },
-  previewTitle: { fontSize: 13, color: colors.primary, fontFamily: fonts.bold, marginBottom: 6 },
-  previewText: { fontSize: 12, color: colors.text, fontFamily: fonts.regular, lineHeight: 20 },
   bottomBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: colors.white, paddingHorizontal: 20,
     paddingVertical: 14, paddingBottom: 30, borderTopWidth: 1, borderTopColor: '#eee', zIndex: 1000,
   },
-  btnSimpan: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  btnSimpanText: { fontSize: 15, color: colors.white, fontFamily: fonts.bold },
+  btnUpdate: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  btnUpdateText: { fontSize: 15, color: colors.white, fontFamily: fonts.bold },
 });

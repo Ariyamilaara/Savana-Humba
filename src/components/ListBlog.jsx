@@ -9,16 +9,15 @@ import {
 } from 'react-native';
 import { colors, fonts } from '../theme';
 
-// Hapus useNavigation dari sini — navigasi dikirim lewat props onReadMore
 const ListBlog = ({ title, category, image, isLiked, onPress, onReadMore, onLike }) => {
-
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
       <Image source={{ uri: image }} style={styles.image} />
       <View style={styles.info}>
         <View style={styles.topRow}>
           <Text style={styles.category}>{category}</Text>
-          <TouchableOpacity onPress={onLike}>
+          {/* Tombol like — emoji berubah berdasarkan props isLiked */}
+          <TouchableOpacity onPress={onLike} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Text style={styles.likeIcon}>{isLiked ? '❤️' : '🤍'}</Text>
           </TouchableOpacity>
         </View>

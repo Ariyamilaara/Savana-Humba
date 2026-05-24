@@ -22,12 +22,12 @@ const kategoriData = [
 
 // Data wisata Sumba
 const wisataData = [
-  { id: '1', title: 'Pantai Nihiwatu', kategori: 'Pantai', lokasi: 'Sumba Barat Daya', image: 'https://images.unsplash.com/photo-1533050487297-09b450131914?w=400' },
-  { id: '2', title: 'Savana Puru Kambera', kategori: 'Savana', lokasi: 'Sumba Timur', image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400' },
-  { id: '3', title: 'Air Terjun Lapopu', kategori: 'Air Terjun', lokasi: 'Sumba Tengah', image: 'https://images.unsplash.com/photo-1533050487297-09b450131914?w=400' },
-  { id: '4', title: 'Kampung Adat Ratenggaro', kategori: 'Budaya', lokasi: 'Sumba Barat', image: 'https://images.unsplash.com/photo-1533050487297-09b450131914?w=400' },
-  { id: '5', title: 'Pantai Walakiri', kategori: 'Pantai', lokasi: 'Sumba Timur', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400' },
-  { id: '6', title: "Kuliner Se'i Babi Sumba", kategori: 'Kuliner', lokasi: 'Waingapu', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400' },
+  { id: '1', title: 'Pantai Nihiwatu', kategori: 'Pantai', lokasi: 'Sumba Barat Daya', image: 'https://i.pinimg.com/1200x/b2/27/cc/b227cce7968280608cedef8afec1f901.jpg' },
+  { id: '2', title: 'Savana Puru Kambera', kategori: 'Savana', lokasi: 'Sumba Timur', image: 'https://i.pinimg.com/1200x/2b/84/06/2b8406cd3940593bbbd01305b8f888d8.jpg' },
+  { id: '3', title: 'Air Terjun Lapopu', kategori: 'Air Terjun', lokasi: 'Sumba Tengah', image: 'https://i.pinimg.com/736x/88/eb/d6/88ebd60f805a7b010c2e47afb4d9a045.jpg' },
+  { id: '4', title: 'Kampung Adat Ratenggaro', kategori: 'Budaya', lokasi: 'Sumba Barat', image: 'https://i.pinimg.com/1200x/91/83/d9/9183d9af2a6054fd1d3e2a071703141c.jpg' },
+  { id: '5', title: 'Pantai Walakiri', kategori: 'Pantai', lokasi: 'Sumba Timur', image: 'https://i.pinimg.com/1200x/1b/f2/9f/1bf29fd7f1455ca0dbd8b66a1d561344.jpg' },
+  { id: '6', title: "Kuliner Se'i Babi Sumba", kategori: 'Kuliner', lokasi: 'Waingapu', image: 'https://i.pinimg.com/736x/45/9f/47/459f470f7e3df2f5bd4b845974a907f2.jpg' },
 ];
 
 // Komponen Discover — halaman pencarian dan filter wisata Sumba

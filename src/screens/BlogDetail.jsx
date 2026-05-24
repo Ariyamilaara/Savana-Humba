@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,140 +7,140 @@ import {
   Image,
   Alert,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 import { colors, fonts } from '../theme';
 
-// Data artikel wisata Sumba
-const dummyData = [
-  {
-    id: '1',
-    title: 'Mengenal Savana Sumba yang Eksotis',
-    category: 'Alam',
-    image: 'https://i.pinimg.com/736x/10/e8/5e/10e85ec271bbc9abba77b615ec771a27.jpg',
-    createdAt: '01 Apr, 2026',
-    totalLikes: 2300,
-    totalComments: 89,
-    content: `Pulau Sumba menyimpan keindahan alam yang luar biasa, salah satunya adalah hamparan savana yang luas dan eksotis. Berbeda dengan pulau-pulau lain di Indonesia yang didominasi hutan tropis, Sumba memiliki lansekap padang rumput kekuningan yang membentang hingga tepi pantai dan perbukitan.
+// URL API MockAPI SavanaHumba
+const API_URL = 'https://6a0ad26921e445625696a97c.mockapi.io/api/artikel';
 
-Savana Puru Kambera di Sumba Timur adalah salah satu yang paling terkenal. Di sini, kuda-kuda liar berlarian bebas di antara pohon lontar yang menjulang, menciptakan pemandangan yang seolah berasal dari film dokumenter Afrika. Cahaya matahari sore yang keemasan membuat savana ini tampak semakin memukau.
-
-Selain Puru Kambera, masih banyak hamparan savana indah lainnya di Sumba yang belum banyak diketahui wisatawan. Inilah yang membuat Sumba menjadi destinasi wisata tersembunyi yang wajib dikunjungi bagi para pecinta alam dan fotografer.`,
-  },
-  {
-    id: '2',
-    title: 'Wisata Budaya Sumba yang Kaya',
-    category: 'Budaya',
-    image: 'https://i.pinimg.com/736x/98/ac/6c/98ac6cf2c3561de99c75d96f3ece9ec3.jpg',
-    createdAt: '28 Mar, 2026',
-    totalLikes: 1800,
-    totalComments: 65,
-    content: `Sumba adalah pulau dengan kekayaan budaya yang sangat dalam dan unik. Masyarakat Sumba masih menjaga tradisi leluhur mereka dengan sangat kuat, mulai dari upacara adat, tenunan ikat, hingga sistem kepercayaan Marapu yang telah ada jauh sebelum agama-agama besar masuk ke pulau ini.
-
-Salah satu tradisi paling spektakuler di Sumba adalah Pasola, sebuah ritual perang berkuda yang diadakan setiap tahun sebagai bagian dari perayaan panen. Dua kelompok penunggang kuda saling melempar lembing kayu dengan penuh semangat, disaksikan oleh ribuan penonton yang memenuhi padang luas.
-
-Rumah adat Sumba yang disebut Uma Mbatangu juga menjadi daya tarik tersendiri. Rumah berbentuk kerucut tinggi ini bukan sekadar tempat tinggal, melainkan simbol kosmologi dan hierarki sosial masyarakat Sumba yang kaya makna.`,
-  },
-  {
-    id: '3',
-    title: 'Kuliner Khas Sumba Wajib Dicoba',
-    category: 'Kuliner',
-    image: 'https://i.pinimg.com/736x/45/9f/47/459f470f7e3df2f5bd4b845974a907f2.jpg',
-    createdAt: '20 Mar, 2026',
-    totalLikes: 1200,
-    totalComments: 43,
-    content: `Kuliner Sumba menawarkan cita rasa yang autentik dan berbeda dari daerah lain di Indonesia. Makanan khas Sumba umumnya menggunakan bahan-bahan lokal seperti jagung, daging babi, ayam kampung, dan hasil laut segar yang diolah dengan cara tradisional.
-
-Se'i adalah salah satu kuliner paling ikonik dari Sumba. Daging sapi atau babi yang diasap dengan kayu kosambi ini memiliki aroma dan rasa yang khas, tidak bisa ditemukan di tempat lain. Se'i biasanya disajikan dengan sambal luat yang pedas dan sayuran segar.
-
-Selain Se'i, ada juga Jawada yaitu kue tradisional yang terbuat dari tepung beras dan gula aren, serta Manggulu yaitu dodol khas Sumba yang terbuat dari pisang dan kacang tanah. Semua kuliner ini wajib dicoba saat mengunjungi Pulau Sumba.`,
-  },
-];
-
-// Fungsi format angka (1200 → 1.2K)
+// Fungsi format angka — tambahkan pengecekan undefined/null
 const formatNumber = (number) => {
+  if (!number && number !== 0) return '0';
   if (number >= 1000) return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   return number.toString();
 };
 
-// Komponen BlogDetail — halaman detail artikel wisata
-// Menerima route.params berisi blogId dari Stack Navigator
 const BlogDetail = ({ route }) => {
   const { blogId } = route.params;
   const navigation = useNavigation();
 
-  // State untuk like, bookmark, dan share
+  // State data artikel dari API
+  const [selectedBlog, setSelectedBlog] = useState(null);
+  // State loading saat fetch data
+  const [fetchLoading, setFetchLoading] = useState(true);
+  // State loading saat hapus artikel
+  const [loadingHapus, setLoadingHapus] = useState(false);
+
+  // State untuk interaksi
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isShared, setIsShared] = useState(false);
 
-  // PENERAPAN ANIMASI
-  
-  // Membuat nilai awal scrollY = 0 menggunakan useRef
-  // agar tidak terbuat ulang saat komponen re-render
+  // Animasi scrollY
   const scrollY = useRef(new Animated.Value(0)).current;
-
-  // diffClamp membatasi nilai scrollY antara 0 dan 52
-  // agar animasi tidak bergerak melebihi batas header
   const diffClampY = Animated.diffClamp(scrollY, 0, 52);
-
-  // Interpolasi untuk header — bergerak ke atas saat scroll turun
-  // inputRange [0, 52] dipetakan ke outputRange [0, -52]
   const headerY = diffClampY.interpolate({
     inputRange: [0, 52],
     outputRange: [0, -52],
     extrapolate: 'clamp',
   });
-
-  // Interpolasi untuk bottomBar — bergerak ke bawah saat scroll turun
-  // inputRange [0, 52] dipetakan ke outputRange [0, 52]
   const bottomBarY = diffClampY.interpolate({
     inputRange: [0, 52],
     outputRange: [0, 52],
     extrapolate: 'clamp',
   });
 
-  // Cari artikel berdasarkan blogId
-  const selectedBlog = dummyData.find((blog) => blog.id === blogId);
+  // Fungsi GET — ambil data artikel dari API berdasarkan blogId
+  useEffect(() => {
+    const fetchArtikel = async () => {
+      setFetchLoading(true);
+      try {
+        const response = await axios.get(`${API_URL}/${blogId}`);
+        setSelectedBlog(response.data);
+      } catch (error) {
+        Alert.alert('Error', 'Gagal memuat artikel!');
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+    if (blogId) fetchArtikel();
+  }, [blogId]);
+
+  // Fungsi DELETE — hapus artikel dari API
+  const handleHapus = () => {
+    Alert.alert(
+      'Hapus Artikel',
+      'Yakin ingin menghapus artikel ini?',
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Hapus',
+          style: 'destructive',
+          onPress: async () => {
+            setLoadingHapus(true);
+            try {
+              await axios.delete(`${API_URL}/${blogId}`);
+              Alert.alert('Berhasil', 'Artikel berhasil dihapus! 🗑️');
+              navigation.goBack();
+            } catch (error) {
+              Alert.alert('Error', 'Gagal menghapus artikel!');
+            } finally {
+              setLoadingHapus(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Tampilkan loading saat data belum siap
+  if (fetchLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // Jika artikel tidak ditemukan
   if (!selectedBlog) return null;
 
   return (
     <SafeAreaView style={styles.container}>
 
-      {/* Header — menggunakan Animated.View agar bisa bergerak saat scroll */}
-      <Animated.View
-        style={[styles.header, { transform: [{ translateY: headerY }] }]}
-      >
-        {/* Tombol kembali ke halaman sebelumnya */}
+      {/* Header animasi */}
+      <Animated.View style={[styles.header, { transform: [{ translateY: headerY }] }]}>
+        {/* Tombol kembali */}
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color={colors.text} />
         </TouchableOpacity>
 
-        {/* Judul halaman */}
         <Text style={styles.headerTitle}>Detail Artikel</Text>
 
-        {/* Tombol bookmark — toggle simpan/hapus */}
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => {
-            setIsBookmarked(!isBookmarked);
-            Alert.alert(
-              'SavanaHumba',
-              isBookmarked ? 'Artikel dihapus dari bookmark' : 'Artikel disimpan ke bookmark! 🔖'
-            );
-          }}
-        >
-          <Ionicons
-            name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
-            size={22}
-            color={isBookmarked ? colors.primary : colors.text}
-          />
-        </TouchableOpacity>
+        {/* Tombol edit dan hapus */}
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.navigate('EditArtikel', { blogId })}
+          >
+            <Ionicons name="create-outline" size={22} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.backBtn} onPress={handleHapus}>
+            {loadingHapus ? (
+              <ActivityIndicator size="small" color="#E74C3C" />
+            ) : (
+              <Ionicons name="trash-outline" size={22} color="#E74C3C" />
+            )}
+          </TouchableOpacity>
+        </View>
       </Animated.View>
 
-      {/* Animated.ScrollView — menangkap event scroll untuk menggerakkan animasi */}
+      {/* Konten artikel */}
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
@@ -151,31 +151,32 @@ const BlogDetail = ({ route }) => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Foto artikel */}
-        <Image source={{ uri: selectedBlog.image }} style={styles.image} />
+        <Image
+          source={{ uri: selectedBlog.image }}
+          style={styles.image}
+          defaultSource={{ uri: 'https://via.placeholder.com/400x240' }}
+        />
 
-        {/* Meta info — kategori dan tanggal */}
+        {/* Meta info */}
         <View style={styles.metaRow}>
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{selectedBlog.category}</Text>
+            <Text style={styles.badgeText}>{selectedBlog.category || '-'}</Text>
           </View>
-          <Text style={styles.date}>📅 {selectedBlog.createdAt}</Text>
+          <Text style={styles.date}>📅 {selectedBlog.createdAt || '-'}</Text>
         </View>
 
-        {/* Judul artikel */}
-        <Text style={styles.title}>{selectedBlog.title}</Text>
-
-        {/* Garis pemisah */}
+        {/* Judul */}
+        <Text style={styles.title}>{selectedBlog.title || '-'}</Text>
         <View style={styles.divider} />
 
-        {/* Isi artikel */}
-        <Text style={styles.content}>{selectedBlog.content}</Text>
+        {/* Deskripsi */}
+        <Text style={styles.content}>{selectedBlog.description || 'Tidak ada deskripsi.'}</Text>
       </Animated.ScrollView>
 
-      {/* Bottom bar — menggunakan Animated.View agar bisa bergerak saat scroll */}
-      <Animated.View
-        style={[styles.bottomBar, { transform: [{ translateY: bottomBarY }] }]}
-      >
-        {/* Tombol Like — toggle merah/abu */}
+      {/* Bottom bar */}
+      <Animated.View style={[styles.bottomBar, { transform: [{ translateY: bottomBarY }] }]}>
+
+        {/* Tombol Like */}
         <TouchableOpacity
           style={styles.interactionItem}
           onPress={() => setIsLiked(!isLiked)}
@@ -187,23 +188,23 @@ const BlogDetail = ({ route }) => {
           />
           <Text style={[styles.interactionText, isLiked && { color: '#E74C3C' }]}>
             {isLiked
-              ? formatNumber(selectedBlog.totalLikes + 1)
-              : formatNumber(selectedBlog.totalLikes)}
+              ? formatNumber((selectedBlog.totalLikes || 0) + 1)
+              : formatNumber(selectedBlog.totalLikes || 0)}
           </Text>
         </TouchableOpacity>
 
-        {/* Tombol Komentar — menampilkan Alert fitur segera hadir */}
+        {/* Tombol Komentar */}
         <TouchableOpacity
           style={styles.interactionItem}
           onPress={() => Alert.alert('SavanaHumba', 'Fitur komentar segera hadir! 💬')}
         >
           <Ionicons name="chatbubble-outline" size={24} color={colors.textLight} />
           <Text style={styles.interactionText}>
-            {formatNumber(selectedBlog.totalComments)}
+            {formatNumber(selectedBlog.totalComments || 0)}
           </Text>
         </TouchableOpacity>
 
-        {/* Tombol Share — toggle ikon dan tampilkan Alert */}
+        {/* Tombol Share */}
         <TouchableOpacity
           style={styles.interactionItem}
           onPress={() => {
@@ -217,8 +218,8 @@ const BlogDetail = ({ route }) => {
             color={isShared ? colors.primary : colors.textLight}
           />
         </TouchableOpacity>
-      </Animated.View>
 
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -226,12 +227,16 @@ const BlogDetail = ({ route }) => {
 export default BlogDetail;
 
 const styles = StyleSheet.create({
-  // Container utama halaman
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  // Header — position absolute agar bisa ditimpa konten scroll
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -248,27 +253,27 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     height: 52,
   },
-  // Tombol kembali dan bookmark
   backBtn: {
     padding: 4,
   },
-  // Judul header
   headerTitle: {
     fontSize: 16,
     color: colors.text,
     fontFamily: fonts.bold,
   },
-  // Padding konten scroll agar tidak tertutup header dan bottomBar
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   scrollContent: {
     paddingTop: 62,
     paddingBottom: 120,
   },
-  // Foto artikel full width
   image: {
     width: '100%',
     height: 240,
   },
-  // Baris meta — kategori dan tanggal
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -276,7 +281,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 16,
   },
-  // Badge kategori
   badge: {
     backgroundColor: colors.accent,
     paddingHorizontal: 12,
@@ -289,13 +293,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semiBold,
     textTransform: 'uppercase',
   },
-  // Teks tanggal
   date: {
     fontSize: 12,
     color: colors.textLight,
     fontFamily: fonts.regular,
   },
-  // Judul artikel
   title: {
     fontSize: 20,
     color: colors.text,
@@ -304,14 +306,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     lineHeight: 28,
   },
-  // Garis pemisah
   divider: {
     height: 1,
     backgroundColor: '#eee',
     marginHorizontal: 20,
     marginVertical: 16,
   },
-  // Isi artikel
   content: {
     fontSize: 14,
     color: colors.textLight,
@@ -319,7 +319,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     lineHeight: 24,
   },
-  // Bottom bar — position absolute agar bisa bergerak dengan animasi
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -334,13 +333,11 @@ const styles = StyleSheet.create({
     borderTopColor: '#eee',
     zIndex: 1000,
   },
-  // Item interaksi — like, komentar, share
   interactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  // Teks jumlah like/komentar
   interactionText: {
     fontSize: 13,
     color: colors.textLight,
