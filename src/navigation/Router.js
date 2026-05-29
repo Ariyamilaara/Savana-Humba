@@ -9,13 +9,14 @@ import Bookmark from '../screens/Bookmark';
 import Profile from '../screens/Profile';
 import BlogDetail from '../screens/BlogDetail';
 import TambahArtikel from '../screens/TambahArtikel';
-import EditArtikel from '../screens/EditArtikel'; // ← tambahkan
-import { colors, fonts } from '../theme';
+import EditArtikel from '../screens/EditArtikel';
+import Login from '../screens/auth/Login';
+import Register from '../screens/auth/Register';
+import { colors } from '../theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// Bottom Tab Navigator — navigasi utama
 function MainApp() {
   return (
     <Tab.Navigator
@@ -23,7 +24,7 @@ function MainApp() {
         headerShown: false,
         tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textLight,
+        tabBarInactiveTintColor: '#999',
         tabBarStyle: {
           backgroundColor: '#fff',
           borderTopWidth: 1,
@@ -32,9 +33,7 @@ function MainApp() {
           paddingTop: 6,
           height: 75,
         },
-        tabBarLabelStyle: {
-          fontSize: 11,
-        },
+        tabBarLabelStyle: { fontSize: 11 },
       }}
     >
       <Tab.Screen
@@ -81,31 +80,37 @@ function MainApp() {
   );
 }
 
-// Stack Navigator — membungkus MainApp + semua screen detail
 const Router = () => {
   return (
-    <Stack.Navigator>
-      {/* Screen utama — Bottom Tab */}
+    <Stack.Navigator initialRouteName="Login">
+      {/* Auth screens */}
+      <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={Register}
+        options={{ headerShown: false }}
+      />
+
+      {/* Main app */}
       <Stack.Screen
         name="MainApp"
         component={MainApp}
         options={{ headerShown: false }}
       />
 
-      {/* Screen detail artikel — slide dari kanan */}
+      {/* Detail screens */}
       <Stack.Screen
         name="BlogDetail"
         component={BlogDetail}
         options={{
           headerShown: false,
-          animationEnabled: true,
-          gestureEnabled: true,
-          gestureDirection: 'horizontal',
           ...TransitionPresets.SlideFromRightIOS,
         }}
       />
-
-      {/* Screen tambah artikel baru */}
       <Stack.Screen
         name="TambahArtikel"
         component={TambahArtikel}
@@ -114,8 +119,6 @@ const Router = () => {
           ...TransitionPresets.SlideFromRightIOS,
         }}
       />
-
-      {/* Screen edit artikel — slide dari kanan */}
       <Stack.Screen
         name="EditArtikel"
         component={EditArtikel}

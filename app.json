@@ -26,7 +26,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Izinkan SavanaHumba mengakses foto kamu",
+          "cameraPermission": "Izinkan SavanaHumba mengakses kamera kamu"
+        }
+      ]
     ]
   }
 }
